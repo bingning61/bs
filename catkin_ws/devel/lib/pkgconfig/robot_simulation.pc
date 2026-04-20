@@ -1,0 +1,8 @@
+prefix=/home/bn/catkin_ws/devel
+
+Name: robot_simulation
+Description: Description of robot_simulation
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

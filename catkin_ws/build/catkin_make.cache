@@ -1,0 +1,2 @@
+base_control:bingda_tutorials:lidar/nvilidar_ros:lidar/rplidar_ros:lidar/sc_mini:robot_navigation:robot_simulation:robot_vision
+-DCATKIN_DEVEL_PREFIX=/home/bn/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/bn/catkin_ws/install -G Unix Makefiles
