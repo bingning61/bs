@@ -1,0 +1,4 @@
+{
+    "ROS2.distro": "melodic",
+    "cmake.sourceDirectory": "/home/bn/catkin_ws/src/lidar/rplidar_ros"
+}
