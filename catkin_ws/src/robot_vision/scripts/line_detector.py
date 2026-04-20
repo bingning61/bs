@@ -64,8 +64,8 @@ class line_follow:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print e
-        # conver image color from RGB to HSV    
-        hsv_image = cv2.cvtColor(cv_image,cv2.COLOR_RGB2HSV)
+        # cv_bridge with bgr8 returns BGR image, so convert from BGR to HSV.
+        hsv_image = cv2.cvtColor(cv_image,cv2.COLOR_BGR2HSV)
         #set color mask min amd max value
         line_lower = np.array([self.h_lower,self.s_lower,self.v_lower])
         line_upper = np.array([self.h_upper,self.s_upper,self.v_upper])

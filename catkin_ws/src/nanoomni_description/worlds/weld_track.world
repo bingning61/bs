@@ -1,0 +1,205 @@
+<sdf version='1.6'>
+  <world name='weld_track_world'>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <scene>
+      <ambient>0.35 0.35 0.35 1</ambient>
+      <background>0.55 0.56 0.58 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <model name='ship_plate_deck'>
+      <static>true</static>
+      <link name='deck_link'>
+        <collision name='deck_collision'>
+          <pose>0 0 -0.01 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12 6 0.02</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+
+        <visual name='deck_visual'>
+          <pose>0 0 -0.01 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12 6 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.18 0.18 0.18 1</ambient>
+            <diffuse>0.18 0.18 0.18 1</diffuse>
+            <specular>0.02 0.02 0.02 1</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+
+        <visual name='panel_joint_1'>
+          <pose>-1.5 0 0.0001 0 0 1.5708</pose>
+          <geometry>
+            <box>
+              <size>6.0 0.02 0.0002</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.13 0.13 0.13 1</ambient>
+            <diffuse>0.13 0.13 0.13 1</diffuse>
+            <specular>0 0 0 1</specular>
+          </material>
+        </visual>
+
+        <visual name='panel_joint_2'>
+          <pose>1.5 0 0.0001 0 0 1.5708</pose>
+          <geometry>
+            <box>
+              <size>6.0 0.02 0.0002</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.13 0.13 0.13 1</ambient>
+            <diffuse>0.13 0.13 0.13 1</diffuse>
+            <specular>0 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name='weld_seam_track'>
+      <static>true</static>
+      <link name='seam_link'>
+        <visual name='seam_01'>
+          <pose>-4.3 -2.2 0.004 0 0 0</pose>
+          <geometry><box><size>1.0 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_02'>
+          <pose>-3.3 -2.2 0.004 0 0 0</pose>
+          <geometry><box><size>1.0 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_03'>
+          <pose>-2.628 -2.170 0.004 0 0 0.174533</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_04'>
+          <pose>-2.291 -2.079 0.004 0 0 0.349066</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_05'>
+          <pose>-1.975 -1.932 0.004 0 0 0.523599</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_06'>
+          <pose>-1.689 -1.732 0.004 0 0 0.698132</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_07'>
+          <pose>-1.443 -1.485 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_08'>
+          <pose>-1.221 -1.221 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.34 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_09'>
+          <pose>-1.006 -0.965 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.33 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_10'>
+          <pose>-0.793 -0.712 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.33 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_11'>
+          <pose>-0.544 -0.485 0.004 0 0 0.610865</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_12'>
+          <pose>-0.236 -0.325 0.004 0 0 0.349066</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_13'>
+          <pose>0.102 -0.250 0.004 0 0 0.087266</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_14'>
+          <pose>0.449 -0.265 0.004 0 0 -0.174533</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_15'>
+          <pose>0.796 -0.280 0.004 0 0 0.087266</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_16'>
+          <pose>1.135 -0.205 0.004 0 0 0.349066</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_17'>
+          <pose>1.442 -0.045 0.004 0 0 0.610865</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_18'>
+          <pose>1.698 0.190 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.35 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_19'>
+          <pose>1.907 0.439 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.30 0.08 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_20'>
+          <pose>2.100 0.669 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.30 0.095 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_21'>
+          <pose>2.293 0.898 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.30 0.11 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_22'>
+          <pose>2.630 1.301 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.75 0.11 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+        <visual name='seam_23'>
+          <pose>3.112 1.875 0.004 0 0 0.872665</pose>
+          <geometry><box><size>0.75 0.11 0.008</size></box></geometry>
+          <material><ambient>0.64 0.35 0.14 1</ambient><diffuse>0.74 0.43 0.18 1</diffuse><specular>0.01 0.01 0.01 1</specular></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

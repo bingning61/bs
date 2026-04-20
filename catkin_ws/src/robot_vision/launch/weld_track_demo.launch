@@ -1,0 +1,22 @@
+<launch>
+  <arg name="x_pos" default="-5.2"/>
+  <arg name="y_pos" default="-2.2"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="test_mode" default="False"/>
+
+  <include file="$(find nanoomni_description)/launch/simulation_weld.launch">
+    <arg name="x_pos" value="$(arg x_pos)"/>
+    <arg name="y_pos" value="$(arg y_pos)"/>
+    <arg name="z_pos" value="$(arg z_pos)"/>
+    <arg name="yaw" value="$(arg yaw)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+  <include file="$(find robot_vision)/launch/weld_line_follow.launch">
+    <arg name="test_mode" value="$(arg test_mode)"/>
+  </include>
+</launch>
