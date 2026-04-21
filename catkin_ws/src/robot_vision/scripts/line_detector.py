@@ -45,6 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
+        self.scan_offsets = [140, 110, 80, 50, 20, -10]
         #line center point X Axis coordinate
         self.center_point = 0
 
@@ -71,8 +72,8 @@ class line_follow:
         line_upper = np.array([self.h_upper,self.s_upper,self.v_upper])
         # get mask from color
         mask = cv2.inRange(hsv_image,line_lower,line_upper)
-        # close operation to fit some little hole
-        kernel = np.ones((9,9),np.uint8)
+        # close operation to fit some little hole without over-widening the seam
+        kernel = np.ones((5,5),np.uint8)
         mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,kernel)
         # if test mode,output the center point HSV value
         res = cv_image
@@ -82,16 +83,18 @@ class line_follow:
             cv2.line(res,(hsv_image.shape[1]/2, hsv_image.shape[0]/2-10), (hsv_image.shape[1]/2, hsv_image.shape[0]/2+10), (0,0,255), 1)
             rospy.loginfo("Point HSV Value is %s"%hsv_image[hsv_image.shape[0]/2,hsv_image.shape[1]/2])            
         else:
-            # in normal mode,add mask to original image
-            # res = cv2.bitwise_and(cv_image,cv_image,mask=mask)
-            for i in range(-60,100,20):
-                point = np.nonzero(mask[mask.shape[0]/2 + i])             
-                if len(point[0]) > 10:
-                    self.center_point = int(np.mean(point))
-                    cv2.circle(res, (self.center_point,hsv_image.shape[0]/2+i), 5, (0,0,255), 5)
+            image_center_y = hsv_image.shape[0] / 2
+            for offset in self.scan_offsets:
+                row_index = max(0, min(mask.shape[0] - 1, image_center_y + offset))
+                row_pixels = np.nonzero(mask[row_index])[0]
+                if len(row_pixels) > 6:
+                    self.center_point = int(np.mean(row_pixels))
+                    cv2.circle(res, (self.center_point, row_index), 5, (0,0,255), 5)
                     break
         if self.center_point:
             self.twist_calculate(hsv_image.shape[1]/2,self.center_point)
+        else:
+            self.stop_robot()
         self.center_point = 0
 
 
@@ -120,15 +123,18 @@ class line_follow:
         self.twist.angular.x = 0
         self.twist.angular.y = 0
         self.twist.angular.z = 0
-        if center/width > 0.95 and center/width < 1.05:
-            self.twist.linear.x = 0.2
+        error = (width - center) / width
+        self.twist.angular.z = max(min(error * 0.8, 0.45), -0.45)
+        if abs(error) < 0.08:
+            self.twist.linear.x = 0.12
+        elif abs(error) < 0.18:
+            self.twist.linear.x = 0.08
         else:
-            self.twist.angular.z = ((width - center) / width) / 2.0
-            if abs(self.twist.angular.z) < 0.2:
-                self.twist.linear.x = 0.2 - self.twist.angular.z/2.0
-            else:
-                self.twist.linear.x = 0.1
+            self.twist.linear.x = 0.05
         self.pub_cmd.publish(self.twist)
+
+    def stop_robot(self):
+        self.pub_cmd.publish(Twist())
 
 
 

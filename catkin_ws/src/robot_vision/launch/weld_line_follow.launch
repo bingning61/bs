@@ -1,11 +1,11 @@
 <launch>
-  <arg name="h_lower" default="5"/>
-  <arg name="s_lower" default="70"/>
-  <arg name="v_lower" default="50"/>
+  <arg name="h_lower" default="6"/>
+  <arg name="s_lower" default="80"/>
+  <arg name="v_lower" default="40"/>
 
-  <arg name="h_upper" default="25"/>
+  <arg name="h_upper" default="24"/>
   <arg name="s_upper" default="255"/>
-  <arg name="v_upper" default="230"/>
+  <arg name="v_upper" default="180"/>
   <arg name="test_mode" default="False"/>
 
   <node pkg="robot_vision" name="linefollow" type="line_detector.py" output="screen">
