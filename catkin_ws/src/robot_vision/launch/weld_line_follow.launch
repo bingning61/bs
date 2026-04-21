@@ -6,14 +6,6 @@
   <arg name="h_upper" default="24"/>
   <arg name="s_upper" default="255"/>
   <arg name="v_upper" default="180"/>
-  <arg name="turn_gain" default="0.90"/>
-  <arg name="lookahead_gain" default="0.55"/>
-  <arg name="max_angular_speed" default="0.58"/>
-  <arg name="straight_speed" default="0.115"/>
-  <arg name="curve_speed" default="0.080"/>
-  <arg name="sharp_curve_speed" default="0.060"/>
-  <arg name="min_track_area" default="180"/>
-  <arg name="min_track_pixels" default="8"/>
   <arg name="test_mode" default="False"/>
 
   <node pkg="robot_vision" name="linefollow" type="line_detector.py" output="screen">
@@ -23,14 +15,6 @@
     <param name="h_upper" value="$(arg h_upper)"/>
     <param name="s_upper" value="$(arg s_upper)"/>
     <param name="v_upper" value="$(arg v_upper)"/>
-    <param name="turn_gain" value="$(arg turn_gain)"/>
-    <param name="lookahead_gain" value="$(arg lookahead_gain)"/>
-    <param name="max_angular_speed" value="$(arg max_angular_speed)"/>
-    <param name="straight_speed" value="$(arg straight_speed)"/>
-    <param name="curve_speed" value="$(arg curve_speed)"/>
-    <param name="sharp_curve_speed" value="$(arg sharp_curve_speed)"/>
-    <param name="min_track_area" value="$(arg min_track_area)"/>
-    <param name="min_track_pixels" value="$(arg min_track_pixels)"/>
     <param name="test_mode" value="$(arg test_mode)"/>
   </node>
 

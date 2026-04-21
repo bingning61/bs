@@ -45,16 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_row_ratios = [0.82, 0.74, 0.66, 0.58, 0.50, 0.42]
-        self.scan_row_weights = [0.30, 0.24, 0.18, 0.14, 0.09, 0.05]
-        self.min_track_pixels = int(rospy.get_param('~min_track_pixels', 8))
-        self.min_track_area = float(rospy.get_param('~min_track_area', 180.0))
-        self.turn_gain = float(rospy.get_param('~turn_gain', 0.90))
-        self.lookahead_gain = float(rospy.get_param('~lookahead_gain', 0.55))
-        self.max_angular_speed = float(rospy.get_param('~max_angular_speed', 0.58))
-        self.straight_speed = float(rospy.get_param('~straight_speed', 0.115))
-        self.curve_speed = float(rospy.get_param('~curve_speed', 0.080))
-        self.sharp_curve_speed = float(rospy.get_param('~sharp_curve_speed', 0.060))
+        self.scan_offsets = [140, 110, 80, 50, 20, -10]
         #line center point X Axis coordinate
         self.center_point = 0
 
@@ -81,31 +72,28 @@ class line_follow:
         line_upper = np.array([self.h_upper,self.s_upper,self.v_upper])
         # get mask from color
         mask = cv2.inRange(hsv_image,line_lower,line_upper)
-        # remove isolated noise first, then reconnect small gaps in the seam.
-        mask = cv2.morphologyEx(mask,cv2.MORPH_OPEN,np.ones((3,3),np.uint8))
-        mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,np.ones((5,5),np.uint8))
+        # close operation to fit some little hole without over-widening the seam
+        kernel = np.ones((5,5),np.uint8)
+        mask = cv2.morphologyEx(mask,cv2.MORPH_CLOSE,kernel)
         # if test mode,output the center point HSV value
-        res = cv_image.copy()
-        display_mask = mask
-        line_found = False
+        res = cv_image
         if self.test_mode:
             cv2.circle(res, (hsv_image.shape[1]/2,hsv_image.shape[0]/2), 5, (0,0,255), 1)
             cv2.line(res,(hsv_image.shape[1]/2-10, hsv_image.shape[0]/2), (hsv_image.shape[1]/2+10,hsv_image.shape[0]/2), (0,0,255), 1)
             cv2.line(res,(hsv_image.shape[1]/2, hsv_image.shape[0]/2-10), (hsv_image.shape[1]/2, hsv_image.shape[0]/2+10), (0,0,255), 1)
             rospy.loginfo("Point HSV Value is %s"%hsv_image[hsv_image.shape[0]/2,hsv_image.shape[1]/2])            
         else:
-            display_mask, tracking_state = self.extract_track_state(mask, res)
-            if tracking_state is not None:
-                line_found = True
-                self.center_point = tracking_state["weighted_center"]
-                self.twist_calculate(
-                    hsv_image.shape[1] / 2,
-                    tracking_state["weighted_center"],
-                    tracking_state["near_center"],
-                    tracking_state["far_center"])
-        if line_found:
-            pass
-        elif not self.test_mode:
+            image_center_y = hsv_image.shape[0] / 2
+            for offset in self.scan_offsets:
+                row_index = max(0, min(mask.shape[0] - 1, image_center_y + offset))
+                row_pixels = np.nonzero(mask[row_index])[0]
+                if len(row_pixels) > 6:
+                    self.center_point = int(np.mean(row_pixels))
+                    cv2.circle(res, (self.center_point, row_index), 5, (0,0,255), 5)
+                    break
+        if self.center_point:
+            self.twist_calculate(hsv_image.shape[1]/2,self.center_point)
+        else:
             self.stop_robot()
         self.center_point = 0
 
@@ -120,67 +108,14 @@ class line_follow:
             img_msg = self.bridge.cv2_to_imgmsg(res, encoding="bgr8")
             img_msg.header.stamp = rospy.Time.now()
             self.result_pub.publish(img_msg)
-            img_msg = self.bridge.cv2_to_imgmsg(display_mask, encoding="passthrough")
+            img_msg = self.bridge.cv2_to_imgmsg(mask, encoding="passthrough")
             img_msg.header.stamp = rospy.Time.now()
             self.mask_pub.publish(img_msg)
             
         except CvBridgeError as e:
             print e
 
-    def extract_track_state(self, mask, res):
-        contours_info = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if len(contours_info) == 3:
-            _, contours, _ = contours_info
-        else:
-            contours, _ = contours_info
-        if not contours:
-            return mask, None
-
-        main_contour = max(contours, key=cv2.contourArea)
-        if cv2.contourArea(main_contour) < self.min_track_area:
-            return mask, None
-
-        track_mask = np.zeros_like(mask)
-        cv2.drawContours(track_mask, [main_contour], -1, 255, -1)
-        cv2.drawContours(res, [main_contour], -1, (255, 180, 0), 2)
-
-        sampled_centers = []
-        for index, row_ratio in enumerate(self.scan_row_ratios):
-            row_index = max(0, min(track_mask.shape[0] - 1, int(track_mask.shape[0] * row_ratio)))
-            row_pixels = np.nonzero(track_mask[row_index])[0]
-            if len(row_pixels) < self.min_track_pixels:
-                continue
-
-            left_edge = int(row_pixels[0])
-            right_edge = int(row_pixels[-1])
-            center = int((left_edge + right_edge) / 2.0)
-            sampled_centers.append({
-                "center": center,
-                "row": row_index,
-                "weight": self.scan_row_weights[index]
-            })
-
-            cv2.circle(res, (center, row_index), 4, (0, 0, 255), -1)
-            cv2.line(res, (left_edge, row_index), (right_edge, row_index), (0, 255, 255), 1)
-
-        if not sampled_centers:
-            return track_mask, None
-
-        total_weight = sum([point["weight"] for point in sampled_centers])
-        if total_weight == 0:
-            return track_mask, None
-
-        weighted_center = int(sum([point["center"] * point["weight"] for point in sampled_centers]) / total_weight)
-        near_center = sampled_centers[0]["center"]
-        far_center = sampled_centers[-1]["center"]
-        cv2.line(res, (weighted_center, sampled_centers[0]["row"]), (weighted_center, sampled_centers[-1]["row"]), (0, 255, 0), 2)
-        return track_mask, {
-            "weighted_center": weighted_center,
-            "near_center": near_center,
-            "far_center": far_center
-        }
-
-    def twist_calculate(self,image_center,center,near_center,far_center):
+    def twist_calculate(self,width,center):
         center = float(center)
         self.twist = Twist()
         self.twist.linear.x = 0
@@ -189,18 +124,14 @@ class line_follow:
         self.twist.angular.x = 0
         self.twist.angular.y = 0
         self.twist.angular.z = 0
-        image_center = float(image_center)
-        lateral_error = (image_center - center) / image_center
-        lookahead_error = (float(near_center) - float(far_center)) / image_center
-        turn_error = lateral_error * self.turn_gain + lookahead_error * self.lookahead_gain
-        self.twist.angular.z = max(min(turn_error, self.max_angular_speed), -self.max_angular_speed)
-
-        if abs(turn_error) < 0.10:
-            self.twist.linear.x = self.straight_speed
-        elif abs(turn_error) < 0.24:
-            self.twist.linear.x = self.curve_speed
+        error = (width - center) / width
+        self.twist.angular.z = max(min(error * 0.8, 0.45), -0.45)
+        if abs(error) < 0.08:
+            self.twist.linear.x = 0.12
+        elif abs(error) < 0.18:
+            self.twist.linear.x = 0.08
         else:
-            self.twist.linear.x = self.sharp_curve_speed
+            self.twist.linear.x = 0.05
         self.pub_cmd.publish(self.twist)
 
     def stop_robot(self):
