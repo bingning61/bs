@@ -6,6 +6,8 @@
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="test_mode" default="False"/>
+  <arg name="rviz" default="false"/>
+  <arg name="rviz_config" default="$(find robot_vision)/config/weld_track_debug.rviz"/>
 
   <include file="$(find nanoomni_description)/launch/simulation_weld.launch">
     <arg name="x_pos" value="$(arg x_pos)"/>
@@ -19,4 +21,6 @@
   <include file="$(find robot_vision)/launch/weld_line_follow.launch">
     <arg name="test_mode" value="$(arg test_mode)"/>
   </include>
+
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="weld_track_rviz" args="-d $(arg rviz_config)" />
 </launch>
