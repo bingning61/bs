@@ -45,7 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_offsets = [148, 118, 88, 58, 28, -2]
+        self.scan_offsets = [144, 114, 84, 54, 24, -6]
         #line center point X Axis coordinate
         self.center_point = 0
 
@@ -125,7 +125,10 @@ class line_follow:
         self.twist.angular.y = 0
         self.twist.angular.z = 0
         error = (width - center) / width
-        self.twist.angular.z = max(min(error * 0.92, 0.45), -0.45)
+        steer_error = error
+        if abs(error) > 0.03:
+            steer_error += 0.010 * np.sign(error)
+        self.twist.angular.z = max(min(steer_error * 0.93, 0.45), -0.45)
         if abs(error) < 0.08:
             self.twist.linear.x = 0.12
         elif abs(error) < 0.18:
