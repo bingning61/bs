@@ -45,7 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_offsets = [144, 114, 84, 54, 24, -6]
+        self.scan_offsets = [136, 106, 76, 46, 16, -14]
         #line center point X Axis coordinate
         self.center_point = 0
 
@@ -126,15 +126,15 @@ class line_follow:
         self.twist.angular.z = 0
         error = (width - center) / width
         steer_error = error
-        if abs(error) > 0.03:
-            steer_error += 0.010 * np.sign(error)
-        self.twist.angular.z = max(min(steer_error * 0.93, 0.45), -0.45)
+        if abs(error) > 0.02:
+            steer_error += 0.015 * np.sign(error)
+        self.twist.angular.z = max(min(steer_error * 0.98, 0.45), -0.45)
         if abs(error) < 0.08:
             self.twist.linear.x = 0.12
         elif abs(error) < 0.18:
             self.twist.linear.x = 0.08
         else:
-            self.twist.linear.x = 0.042
+            self.twist.linear.x = 0.040
         self.pub_cmd.publish(self.twist)
 
     def stop_robot(self):
