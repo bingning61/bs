@@ -132,11 +132,14 @@ class line_follow:
         self.twist.angular.y = 0
         self.twist.angular.z = 0
         raw_error = (width - center) / width
-        # Shift the steering target slightly toward the detected seam in curves
-        # instead of always pulling the seam back toward the image center line.
+        # Use a bounded dynamic target shift in curves so the steering target
+        # moves farther toward the detected seam on larger bends, while keeping
+        # straight segments close to the image center.
         target_center = width
+        bias_px = 0.0
         if abs(raw_error) > 0.05:
-            target_center = width - 12.0 * np.sign(raw_error)
+            bias_px = min(36.0, max(12.0, 0.35 * abs(raw_error) * width))
+            target_center = width - bias_px * np.sign(raw_error)
         error = (target_center - center) / width
         self.twist.angular.z = max(min(error * 0.80, 0.45), -0.45)
         if abs(raw_error) < 0.08:
@@ -150,6 +153,7 @@ class line_follow:
             'target_center': int(round(target_center)),
             'raw_error': raw_error,
             'error': error,
+            'bias_px': bias_px,
             'angular_z': self.twist.angular.z,
             'saturated': abs(self.twist.angular.z) >= 0.44,
         }
@@ -162,6 +166,7 @@ class line_follow:
         target_center = self.last_diag['target_center']
         raw_error = self.last_diag['raw_error']
         error = self.last_diag['error']
+        bias_px = self.last_diag['bias_px']
         angular_z = self.last_diag['angular_z']
         saturated = self.last_diag['saturated']
 
@@ -179,7 +184,8 @@ class line_follow:
         cv2.putText(image, "raw_err={:.3f}".format(raw_error), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         cv2.putText(image, "steer_err={:.3f}".format(error), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         cv2.putText(image, "ang_z={:.3f} sat={}".format(angular_z, sat_label), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.45, text_color, 1)
-        cv2.putText(image, "target={} steer={}".format(target_center, steer_label), (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+        cv2.putText(image, "target={} bias={:.1f}".format(target_center, bias_px), (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+        cv2.putText(image, "steer={}".format(steer_label), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
 
     def stop_robot(self):
         self.pub_cmd.publish(Twist())
