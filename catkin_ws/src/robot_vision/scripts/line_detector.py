@@ -87,15 +87,22 @@ class line_follow:
         else:
             image_center_y = hsv_image.shape[0] / 2
             self.last_scan_row = None
+            candidates = []
             for offset in self.scan_offsets:
                 row_index = max(0, min(mask.shape[0] - 1, image_center_y + offset))
                 cv2.line(res, (0, row_index), (mask.shape[1] - 1, row_index), (80, 80, 80), 1)
                 row_pixels = np.nonzero(mask[row_index])[0]
                 if len(row_pixels) > 6:
-                    self.center_point = int(np.mean(row_pixels))
-                    self.last_scan_row = row_index
-                    cv2.circle(res, (self.center_point, row_index), 5, (0,0,255), 5)
-                    break
+                    candidates.append((offset, row_index, int(np.mean(row_pixels))))
+            if candidates:
+                preferred_offset = self.scan_offsets[min(2, len(self.scan_offsets) - 1)]
+                best_offset, best_row_index, best_center = min(
+                    candidates,
+                    key=lambda item: abs(item[0] - preferred_offset)
+                )
+                self.center_point = best_center
+                self.last_scan_row = best_row_index
+                cv2.circle(res, (self.center_point, best_row_index), 5, (0,0,255), 5)
         if self.center_point:
             self.twist_calculate(hsv_image.shape[1]/2,self.center_point)
             self.draw_debug_overlay(res)
