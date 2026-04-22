@@ -132,11 +132,11 @@ class line_follow:
         self.twist.angular.y = 0
         self.twist.angular.z = 0
         raw_error = (width - center) / width
-        # Apply a tiny turn-dependent target shift so the robot does not cut
-        # too aggressively toward the inside of left/right curves.
+        # Shift the steering target slightly toward the detected seam in curves
+        # instead of always pulling the seam back toward the image center line.
         target_center = width
         if abs(raw_error) > 0.05:
-            target_center = width - 6.0 * np.sign(raw_error)
+            target_center = width - 12.0 * np.sign(raw_error)
         error = (target_center - center) / width
         self.twist.angular.z = max(min(error * 0.80, 0.45), -0.45)
         if abs(raw_error) < 0.08:
