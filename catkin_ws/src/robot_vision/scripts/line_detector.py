@@ -124,11 +124,17 @@ class line_follow:
         self.twist.angular.x = 0
         self.twist.angular.y = 0
         self.twist.angular.z = 0
-        error = (width - center) / width
+        raw_error = (width - center) / width
+        # Apply a tiny turn-dependent target shift so the robot does not cut
+        # too aggressively toward the inside of left/right curves.
+        target_center = width
+        if abs(raw_error) > 0.04:
+            target_center = width - 10.0 * np.sign(raw_error)
+        error = (target_center - center) / width
         self.twist.angular.z = max(min(error * 0.80, 0.45), -0.45)
-        if abs(error) < 0.08:
+        if abs(raw_error) < 0.08:
             self.twist.linear.x = 0.12
-        elif abs(error) < 0.18:
+        elif abs(raw_error) < 0.18:
             self.twist.linear.x = 0.08
         else:
             self.twist.linear.x = 0.049
