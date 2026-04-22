@@ -45,7 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_offsets = [171, 141, 111, 81, 51, 21]
+        self.scan_offsets = [155, 125, 95, 65, 35, 5]
         #line center point X Axis coordinate
         self.center_point = 0
 
@@ -128,8 +128,8 @@ class line_follow:
         # Apply a tiny turn-dependent target shift so the robot does not cut
         # too aggressively toward the inside of left/right curves.
         target_center = width
-        if abs(raw_error) > 0.04:
-            target_center = width - 10.0 * np.sign(raw_error)
+        if abs(raw_error) > 0.05:
+            target_center = width - 6.0 * np.sign(raw_error)
         error = (target_center - center) / width
         self.twist.angular.z = max(min(error * 0.80, 0.45), -0.45)
         if abs(raw_error) < 0.08:
