@@ -48,6 +48,8 @@ class line_follow:
         self.scan_offsets = [155, 125, 95, 65, 35, 5]
         #line center point X Axis coordinate
         self.center_point = 0
+        self.last_scan_row = None
+        self.last_diag = None
 
     def dynamic_reconfigure_callback(self,config,level):
         # update config param
@@ -84,16 +86,21 @@ class line_follow:
             rospy.loginfo("Point HSV Value is %s"%hsv_image[hsv_image.shape[0]/2,hsv_image.shape[1]/2])            
         else:
             image_center_y = hsv_image.shape[0] / 2
+            self.last_scan_row = None
             for offset in self.scan_offsets:
                 row_index = max(0, min(mask.shape[0] - 1, image_center_y + offset))
+                cv2.line(res, (0, row_index), (mask.shape[1] - 1, row_index), (80, 80, 80), 1)
                 row_pixels = np.nonzero(mask[row_index])[0]
                 if len(row_pixels) > 6:
                     self.center_point = int(np.mean(row_pixels))
+                    self.last_scan_row = row_index
                     cv2.circle(res, (self.center_point, row_index), 5, (0,0,255), 5)
                     break
         if self.center_point:
             self.twist_calculate(hsv_image.shape[1]/2,self.center_point)
+            self.draw_debug_overlay(res)
         else:
+            self.last_diag = None
             self.stop_robot()
         self.center_point = 0
 
@@ -138,7 +145,41 @@ class line_follow:
             self.twist.linear.x = 0.08
         else:
             self.twist.linear.x = 0.049
+        self.last_diag = {
+            'image_center': int(width),
+            'target_center': int(round(target_center)),
+            'raw_error': raw_error,
+            'error': error,
+            'angular_z': self.twist.angular.z,
+            'saturated': abs(self.twist.angular.z) >= 0.44,
+        }
         self.pub_cmd.publish(self.twist)
+
+    def draw_debug_overlay(self, image):
+        if not self.last_diag:
+            return
+        image_center = self.last_diag['image_center']
+        target_center = self.last_diag['target_center']
+        raw_error = self.last_diag['raw_error']
+        error = self.last_diag['error']
+        angular_z = self.last_diag['angular_z']
+        saturated = self.last_diag['saturated']
+
+        cv2.line(image, (image_center, 0), (image_center, image.shape[0] - 1), (255, 255, 0), 1)
+        cv2.line(image, (target_center, 0), (target_center, image.shape[0] - 1), (0, 255, 255), 1)
+
+        if self.last_scan_row is not None:
+            cv2.line(image, (0, self.last_scan_row), (image.shape[1] - 1, self.last_scan_row), (0, 255, 0), 1)
+            cv2.circle(image, (target_center, self.last_scan_row), 4, (0, 255, 255), -1)
+            cv2.line(image, (int(self.center_point), self.last_scan_row), (target_center, self.last_scan_row), (255, 0, 255), 1)
+
+        steer_label = "L" if error > 0 else "R"
+        sat_label = "YES" if saturated else "NO"
+        text_color = (0, 0, 255) if saturated else (0, 255, 0)
+        cv2.putText(image, "raw_err={:.3f}".format(raw_error), (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        cv2.putText(image, "steer_err={:.3f}".format(error), (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+        cv2.putText(image, "ang_z={:.3f} sat={}".format(angular_z, sat_label), (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.45, text_color, 1)
+        cv2.putText(image, "target={} steer={}".format(target_center, steer_label), (10, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
 
     def stop_robot(self):
         self.pub_cmd.publish(Twist())
