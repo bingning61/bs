@@ -45,7 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_offsets = [155, 125, 95, 65, 35, 5]
+        self.scan_offsets = [205, 175, 145, 115, 85, 55]
         #line center point X Axis coordinate
         self.center_point = 0
         self.last_scan_row = None
@@ -87,22 +87,15 @@ class line_follow:
         else:
             image_center_y = hsv_image.shape[0] / 2
             self.last_scan_row = None
-            candidates = []
             for offset in self.scan_offsets:
                 row_index = max(0, min(mask.shape[0] - 1, image_center_y + offset))
                 cv2.line(res, (0, row_index), (mask.shape[1] - 1, row_index), (80, 80, 80), 1)
                 row_pixels = np.nonzero(mask[row_index])[0]
                 if len(row_pixels) > 6:
-                    candidates.append((offset, row_index, int(np.mean(row_pixels))))
-            if candidates:
-                preferred_offset = self.scan_offsets[min(2, len(self.scan_offsets) - 1)]
-                best_offset, best_row_index, best_center = min(
-                    candidates,
-                    key=lambda item: abs(item[0] - preferred_offset)
-                )
-                self.center_point = best_center
-                self.last_scan_row = best_row_index
-                cv2.circle(res, (self.center_point, best_row_index), 5, (0,0,255), 5)
+                    self.center_point = int(np.mean(row_pixels))
+                    self.last_scan_row = row_index
+                    cv2.circle(res, (self.center_point, row_index), 5, (0,0,255), 5)
+                    break
         if self.center_point:
             self.twist_calculate(hsv_image.shape[1]/2,self.center_point)
             self.draw_debug_overlay(res)
@@ -144,17 +137,17 @@ class line_follow:
         # straight segments close to the image center.
         target_center = width
         bias_px = 0.0
-        if abs(raw_error) > 0.05:
-            bias_px = min(36.0, max(12.0, 0.35 * abs(raw_error) * width))
+        if abs(raw_error) > 0.03:
+            bias_px = min(60.0, max(20.0, 0.55 * abs(raw_error) * width))
             target_center = width - bias_px * np.sign(raw_error)
         error = (target_center - center) / width
-        self.twist.angular.z = max(min(error * 0.80, 0.45), -0.45)
+        self.twist.angular.z = max(min(error * 0.55, 0.45), -0.45)
         if abs(raw_error) < 0.08:
             self.twist.linear.x = 0.12
         elif abs(raw_error) < 0.18:
-            self.twist.linear.x = 0.08
+            self.twist.linear.x = 0.10
         else:
-            self.twist.linear.x = 0.049
+            self.twist.linear.x = 0.075
         self.last_diag = {
             'image_center': int(width),
             'target_center': int(round(target_center)),
