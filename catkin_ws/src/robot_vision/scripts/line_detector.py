@@ -45,7 +45,7 @@ class line_follow:
         self.h_upper = int(rospy.get_param('~h_upper',130))
         self.s_upper = int(rospy.get_param('~s_upper',255))
         self.v_upper = int(rospy.get_param('~v_upper',255))
-        self.scan_offsets = [205, 175, 145, 115, 85, 55]
+        self.scan_offsets = [230, 200, 170, 140, 110, 80]
         #line center point X Axis coordinate
         self.center_point = 0
         self.last_scan_row = None
@@ -137,17 +137,17 @@ class line_follow:
         # straight segments close to the image center.
         target_center = width
         bias_px = 0.0
-        if abs(raw_error) > 0.03:
-            bias_px = min(60.0, max(20.0, 0.55 * abs(raw_error) * width))
+        if abs(raw_error) > 0.02:
+            bias_px = min(72.0, max(24.0, 0.65 * abs(raw_error) * width))
             target_center = width - bias_px * np.sign(raw_error)
         error = (target_center - center) / width
-        self.twist.angular.z = max(min(error * 0.55, 0.45), -0.45)
+        self.twist.angular.z = max(min(error * 0.43, 0.45), -0.45)
         if abs(raw_error) < 0.08:
             self.twist.linear.x = 0.12
         elif abs(raw_error) < 0.18:
-            self.twist.linear.x = 0.10
+            self.twist.linear.x = 0.11
         else:
-            self.twist.linear.x = 0.075
+            self.twist.linear.x = 0.09
         self.last_diag = {
             'image_center': int(width),
             'target_center': int(round(target_center)),
